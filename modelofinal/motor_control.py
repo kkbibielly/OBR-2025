@@ -10,7 +10,7 @@ IN1_L, IN2_L, EN_L = 21, 20, 12
 IN1_R, IN2_R, EN_R = 16, 19, 13
 
 # --- Parâmetros PID (Ajuste estes valores!) ---
-KP, KI, KD = 0.4, 0.0, 0.05
+KP, KI, KD = 0.2, 0.0, 0.0
 
 # --- Parâmetros de Velocidade (Ajuste estes valores!) ---
 BASE_SPEED = 15
@@ -89,19 +89,19 @@ def _calculate_pid(error):
 def _follow_line_pid(error, base_speed):
     """Lógica interna de seguir linha."""
     pid_output = _calculate_pid(error)
-    speed_L = base_speed - pid_output
-    speed_R = base_speed + pid_output
+    speed_L = base_speed + pid_output
+    speed_R = base_speed - pid_output
     set_motor_speed('L', max(-100, min(100, speed_L)))
     set_motor_speed('R', max(-100, min(100, speed_R)))
 
 def _turn(direction, speed, duration):
     """Lógica interna para giros (usado apenas para Meia Volta)."""
     if direction == 'left':
-        set_motor_speed('L', -speed)
-        set_motor_speed('R', speed)
-    else: # right
         set_motor_speed('L', speed)
         set_motor_speed('R', -speed)
+    else: # right
+        set_motor_speed('L', -speed)
+        set_motor_speed('R', speed)
     time.sleep(duration)
     stop_all_motors()
 
@@ -153,8 +153,9 @@ def gerenciar_movimento(acao, erro):
         last_action_time = time.time()
 
     elif "Procurando Linha" in acao:
-        set_motor_speed('L', 35)
-        set_motor_speed('R', -35)
+        _follow_line_pid(erro, base_speed=INTERSECTION_SPEED)
+        #set_motor_speed('L', 35)
+        #set_motor_speed('R', -35)
     
     else:
         stop_all_motors()
